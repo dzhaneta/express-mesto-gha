@@ -1,0 +1,30 @@
+{
+  "name": "express-mesto-gha",
+  "version": "1.0.0",
+  "description": "[![Tests](../../actions/workflows/tests-13-sprint.yml/badge.svg)](../../actions/workflows/tests-13-sprint.yml) [![Tests](../../actions/workflows/tests-14-sprint.yml/badge.svg)](../../actions/workflows/tests-14-sprint.yml) # Проект Mesto фронтенд + бэкенд",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "npx eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dzhaneta/express-mesto-gha.git"
+  },
+  "keywords": [],
+  "author": "Dzhaneta Kabertay",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dzhaneta/express-mesto-gha/issues"
+  },
+  "homepage": "https://github.com/dzhaneta/express-mesto-gha#readme",
+  "devDependencies": {
+    "eslint": "^8.32.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-jsx-a11y": "^6.7.1",
+    "eslint-plugin-react": "^7.32.1",
+    "eslint-plugin-react-hooks": "^4.6.0"
+  }
+}
