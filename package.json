@@ -5,6 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app.js",
+    "dev": "nodemon app.js",
     "lint": "npx eslint ."
   },
   "repository": {
@@ -19,7 +21,9 @@
   },
   "homepage": "https://github.com/dzhaneta/express-mesto-gha#readme",
   "dependencies": {
-    "express": "^4.18.2"
+    "body-parser": "^1.20.1",
+    "express": "^4.18.2",
+    "mongoose": "^6.9.0"
   },
   "devDependencies": {
     "eslint": "^8.32.0",
