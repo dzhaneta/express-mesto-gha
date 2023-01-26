@@ -7,7 +7,7 @@ module.exports.sendUsers = (req, res) => {
 };
 
 module.exports.sendUserById = (req, res) => {
-  User.findById(req.params.id)
+  User.findById(req.params.userId)
     .then((user) => res.send({ data: user }))
     .catch(() => res.status(500).send({ message: 'Произошла ошибка' }));
 };
