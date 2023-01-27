@@ -9,10 +9,19 @@ module.exports.sendUsers = (req, res) => {
 
 module.exports.sendUserById = (req, res) => {
   User.findById(req.params.userId)
-    .then((user) => res.send({ data: user }))
+    .then((user) => {
+      if (!user) {
+        return res.status(Err.NOT_FOUND_ERR_CODE).send({ message: 'Пользователь с указанным _id не найден.' });
+      }
+      return res.send({ data: user });
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(Err.NOT_FOUND_ERR_CODE).send({ message: 'Пользователь по указанному _id не найден.' });
+        return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Переданы некорректные данные при поиске пользователя.' });
+      }
+
+      if (err.name === 'ValidationError') {
+        return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Переданы некорректные данные при поиске пользователя.' });
       }
 
       return res.status(Err.INTERNAL_SERVER_ERR_CODE).send({ message: 'Внутренняя ошибка сервера' });
