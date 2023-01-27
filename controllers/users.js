@@ -20,10 +20,6 @@ module.exports.sendUserById = (req, res) => {
         return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Переданы некорректные данные при поиске пользователя.' });
       }
 
-      if (err.name === 'ValidationError') {
-        return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Переданы некорректные данные при поиске пользователя.' });
-      }
-
       return res.status(Err.INTERNAL_SERVER_ERR_CODE).send({ message: 'Внутренняя ошибка сервера' });
     });
 };
@@ -55,14 +51,19 @@ module.exports.updateUserInfo = (req, res) => {
       upsert: false,
     },
   )
-    .then((user) => res.send({ data: user }))
+    .then((user) => {
+      if (!user) {
+        return res.status(Err.NOT_FOUND_ERR_CODE).send({ message: 'Пользователь с указанным _id не найден.' });
+      }
+      return res.send({ data: user });
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Переданы некорректные данные при обновлении профиля.' });
       }
 
       if (err.name === 'CastError') {
-        return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Пользователь с указанным _id не найден.' });
+        return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Передан невалидный _id для обновления профиля.' });
       }
 
       return res.status(Err.INTERNAL_SERVER_ERR_CODE).send({ message: 'Внутренняя ошибка сервера' });
@@ -82,14 +83,19 @@ module.exports.updateUserAvatar = (req, res) => {
       upsert: false,
     },
   )
-    .then((user) => res.send({ data: user }))
+    .then((user) => {
+      if (!user) {
+        return res.status(Err.NOT_FOUND_ERR_CODE).send({ message: 'Пользователь с указанным _id не найден.' });
+      }
+      return res.send({ data: user });
+    })
     .catch((err) => {
       if (err.name === 'ValidationError') {
         return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Переданы некорректные данные при обновлении аватара.' });
       }
 
       if (err.name === 'CastError') {
-        return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Пользователь с указанным _id не найден.' });
+        return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Передан невалидный _id для обновления аватара профиля.' });
       }
 
       return res.status(Err.INTERNAL_SERVER_ERR_CODE).send({ message: 'Внутренняя ошибка сервера' });
