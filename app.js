@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
-const { NotFoundError } = require('./errors/notFoundError');
+const NotFoundError = require('./errors/notFoundError');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 
@@ -33,18 +33,11 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-  // если у ошибки нет статуса, выставляем 500
-  const { statusCode = 500, message } = err;
-
-  res
-    .status(statusCode)
-    .send({
-      // проверяем статус и выставляем сообщение в зависимости от него
-      message: statusCode === 500
-        ? 'Внутренняя ошибка сервера'
-        : message,
-    });
-
+  if (err.statusCode) {
+    res.status(err.statusCode).send({ message: err.message });
+  } else {
+    res.status(500).send({ message: `На сервере произошла ошибка: ${err.message}` });
+  }
   next();
 });
 

@@ -2,9 +2,9 @@ const { NODE_ENV, JWT_SECRET } = process.env;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const { BadRequestError } = require('../errors/badRequestError');
-const { ConflictError } = require('../errors/conflictError');
-const { NotFoundError } = require('../errors/notFoundError');
+const BadRequestError = require('../errors/badRequestError');
+const ConflictError = require('../errors/conflictError');
+const NotFoundError = require('../errors/notFoundError');
 
 module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
@@ -118,6 +118,7 @@ module.exports.updateUserInfo = (req, res, next) => {
       if (!user) {
         throw new NotFoundError('Пользователь с указанным _id не найден.');
       }
+
       return res.send({ data: user });
     })
     .catch((err) => {
@@ -137,7 +138,7 @@ module.exports.updateUserInfo = (req, res, next) => {
     });
 };
 
-module.exports.updateUserAvatar = (req, res) => {
+module.exports.updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
   const ownerId = req.user._id;
 
@@ -152,19 +153,23 @@ module.exports.updateUserAvatar = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        return res.status(404).send({ message: 'Пользователь с указанным _id не найден.' });
+        throw new NotFoundError('Пользователь с указанным _id не найден.');
       }
       return res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(400).send({ message: 'Переданы некорректные данные при обновлении аватара.' });
+        throw new BadRequestError(
+          'Переданы некорректные данные при обновлении аватара.',
+        );
       }
 
       if (err.name === 'CastError') {
-        return res.status(400).send({ message: 'Передан невалидный _id для обновления аватара профиля.' });
+        throw new BadRequestError(
+          'Передан невалидный _id для обновления аватара.',
+        );
       }
 
-      return res.status(500).send({ message: 'Внутренняя ошибка сервера' });
+      next(err);
     });
 };
