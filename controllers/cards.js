@@ -5,7 +5,9 @@ module.exports.sendCards = (req, res) => {
   Card.find({})
     .populate(['owner', 'likes'])
     .then((cards) => res.send({ data: cards }))
-    .catch(() => res.status(Err.INTERNAL_SERVER_ERR_CODE).send({ message: 'Внутренняя ошибка сервера' }));
+    .catch(() => res
+      .status(Err.INTERNAL_SERVER_ERR_CODE)
+      .send({ message: 'Внутренняя ошибка сервера' }));
 };
 
 module.exports.createCard = (req, res) => {
@@ -16,27 +18,45 @@ module.exports.createCard = (req, res) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Переданы некорректные данные при создании карточки.' });
+        return res
+          .status(Err.BAD_INPUT_ERR_CODE)
+          .send({ message: 'Переданы некорректные данные при создании карточки.' });
       }
 
-      return res.status(Err.INTERNAL_SERVER_ERR_CODE).send({ message: 'Внутренняя ошибка сервера' });
+      return res
+        .status(Err.INTERNAL_SERVER_ERR_CODE)
+        .send({ message: 'Внутренняя ошибка сервера' });
     });
 };
 
 module.exports.deleteCardById = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
+  Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
-        return res.status(Err.NOT_FOUND_ERR_CODE).send({ message: 'Карточка с указанным _id не найдена.' });
+        return res
+          .status(Err.NOT_FOUND_ERR_CODE)
+          .send({ message: 'Карточка с указанным _id не найдена.' });
       }
-      return res.send({ data: card });
+
+      if (card.owner !== req.user._id) {
+        return res
+          .status(403)
+          .send({ message: 'Нельзя удалить карточку другого пользователя' });
+      }
+
+      return card.remove()
+        .then(() => res.send({ data: card }));
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Переданы некорректные данные при удалении карточки.' });
+        res
+          .status(Err.BAD_INPUT_ERR_CODE)
+          .send({ message: 'Переданы некорректные данные при удалении карточки.' });
       }
 
-      return res.status(Err.INTERNAL_SERVER_ERR_CODE).send({ message: 'Внутренняя ошибка сервера' });
+      res
+        .status(Err.INTERNAL_SERVER_ERR_CODE)
+        .send({ message: 'Внутренняя ошибка сервера' });
     });
 };
 
@@ -51,16 +71,22 @@ module.exports.likeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        return res.status(Err.NOT_FOUND_ERR_CODE).send({ message: 'Карточка с указанным _id не найдена.' });
+        return res
+          .status(Err.NOT_FOUND_ERR_CODE)
+          .send({ message: 'Карточка с указанным _id не найдена.' });
       }
       return res.send({ data: card });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Передан невалидный _id карточки.' });
+        return res
+          .status(Err.BAD_INPUT_ERR_CODE)
+          .send({ message: 'Передан невалидный _id карточки.' });
       }
 
-      return res.status(Err.INTERNAL_SERVER_ERR_CODE).send({ message: 'Внутренняя ошибка сервера' });
+      return res
+        .status(Err.INTERNAL_SERVER_ERR_CODE)
+        .send({ message: 'Внутренняя ошибка сервера' });
     });
 };
 
@@ -75,15 +101,21 @@ module.exports.dislikeCard = (req, res) => {
   )
     .then((card) => {
       if (!card) {
-        return res.status(Err.NOT_FOUND_ERR_CODE).send({ message: 'Карточка с указанным _id не найдена.' });
+        return res
+          .status(Err.NOT_FOUND_ERR_CODE)
+          .send({ message: 'Карточка с указанным _id не найдена.' });
       }
       return res.send({ data: card });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Передан невалидный _id карточки.' });
+        return res
+          .status(Err.BAD_INPUT_ERR_CODE)
+          .send({ message: 'Передан невалидный _id карточки.' });
       }
 
-      return res.status(Err.INTERNAL_SERVER_ERR_CODE).send({ message: 'Внутренняя ошибка сервера' });
+      return res
+        .status(Err.INTERNAL_SERVER_ERR_CODE)
+        .send({ message: 'Внутренняя ошибка сервера' });
     });
 };

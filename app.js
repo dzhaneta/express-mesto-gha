@@ -1,6 +1,10 @@
+require('dotenv').config();
 const express = require('express');
+const cookieParser = require('cookie-parser');
 const mongoose = require('mongoose');
 const Err = require('./utils/error-codes');
+const { login, createUser } = require('./controllers/users');
+const auth = require('./middlewares/auth');
 
 const { PORT = 3000 } = process.env;
 
@@ -11,15 +15,16 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 });
 
 app.use(express.json());
+app.use(cookieParser());
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '63d2bdd31a27f4024e3f2d37',
-  };
+// роуты, не требующие авторизации
+app.post('/signin', login);
+app.post('/signup', createUser);
 
-  next();
-});
+// авторизация
+app.use(auth);
 
+// роуты, которым авторизация нужна
 app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
