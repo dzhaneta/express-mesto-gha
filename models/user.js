@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const validator = require('validator');
 const bcrypt = require('bcryptjs');
+const { UnauthorizedError } = require('../errors/unauthorizedError');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -37,15 +38,18 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     minlength: 8,
+    select: false,
   },
 });
 
 userSchema.statics.findUserByCredentials = function (email, password) {
-  return this.findOne({ email })
+  return this.findOne({ email }).select('+password')
     .then((user) => {
       if (!user) {
         // пользователь с такой почтой не найден
-        return Promise.reject(new Error('Неправильные почта или пароль'));
+        return Promise.reject(
+          new UnauthorizedError('Неправильные почта или пароль'),
+        );
       }
 
       // пользователь найден
@@ -53,7 +57,9 @@ userSchema.statics.findUserByCredentials = function (email, password) {
         .then((matched) => {
           if (!matched) {
             // хеши не совпали — отклоняем промис
-            return Promise.reject(new Error('Неправильные почта или пароль'));
+            return Promise.reject(
+              new UnauthorizedError('Неправильные почта или пароль'),
+            );
           }
 
           // аутентификация успешна

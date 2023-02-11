@@ -2,15 +2,16 @@ const { NODE_ENV, JWT_SECRET } = process.env;
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
-const Err = require('../utils/error-codes');
+const { BadRequestError } = require('../errors/badRequestError');
+const { ConflictError } = require('../errors/conflictError');
+const { NotFoundError } = require('../errors/notFoundError');
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
 
   return User.findUserByCredentials(email, password)
     .then((user) => {
-      // аутентификация успешна! пользователь в переменной user
-      // создадим токен
+      // аутентификация успешна! создадим токен
       const token = jwt.sign(
         { _id: user._id },
         NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
@@ -27,12 +28,10 @@ module.exports.login = (req, res) => {
         })
         .send({ message: 'Авторизация успешна' });
     })
-    .catch((err) => {
-      res.status(401).send({ message: err.message });
-    });
+    .catch(next);
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const {
     name,
     about,
@@ -52,51 +51,57 @@ module.exports.createUser = (req, res) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Переданы некорректные данные при создании пользователя.' });
+        next(new BadRequestError(
+          'Переданы некорректные данные при создании пользователя.',
+        ));
+      } else if (err.code === 11000) {
+        next(new ConflictError(
+          'Пользователь с таким email уже существует.',
+        ));
+      } else {
+        next(err);
       }
-
-      return res.status(Err.INTERNAL_SERVER_ERR_CODE).send({ message: 'Внутренняя ошибка сервера' });
     });
 };
 
-module.exports.sendUsers = (req, res) => {
+module.exports.sendUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch(() => res.status(Err.INTERNAL_SERVER_ERR_CODE).send({ message: 'Внутренняя ошибка сервера' }));
+    .catch(next);
 };
 
-module.exports.sendUserById = (req, res) => {
+module.exports.sendUserById = (req, res, next) => {
   User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
-        return res.status(Err.NOT_FOUND_ERR_CODE).send({ message: 'Пользователь с указанным _id не найден.' });
+        throw new NotFoundError('Пользователь с указанным _id не найден.');
       }
       return res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Переданы некорректные данные при поиске пользователя.' });
+        next(new BadRequestError(
+          'Переданы некорректные данные при поиске пользователя.',
+        ));
       }
 
-      return res.status(Err.INTERNAL_SERVER_ERR_CODE).send({ message: 'Внутренняя ошибка сервера' });
+      next(err);
     });
 };
 
-module.exports.sendUserInfo = (req, res) => {
+module.exports.sendUserInfo = (req, res, next) => {
   const ownerId = req.user._id;
   User.findById(ownerId)
     .then((userInfo) => {
       if (!userInfo) {
-        return res.status(Err.NOT_FOUND_ERR_CODE).send({ message: 'Пользователь не найден.' });
+        throw new NotFoundError('Пользователь не найден.');
       }
       return res.send({ data: userInfo });
     })
-    .catch(() => {
-      res.status(Err.INTERNAL_SERVER_ERR_CODE).send({ message: 'Внутренняя ошибка сервера' });
-    });
+    .catch(next);
 };
 
-module.exports.updateUserInfo = (req, res) => {
+module.exports.updateUserInfo = (req, res, next) => {
   const { name, about } = req.body;
   const ownerId = req.user._id;
 
@@ -111,20 +116,24 @@ module.exports.updateUserInfo = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        return res.status(Err.NOT_FOUND_ERR_CODE).send({ message: 'Пользователь с указанным _id не найден.' });
+        throw new NotFoundError('Пользователь с указанным _id не найден.');
       }
       return res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Переданы некорректные данные при обновлении профиля.' });
+        throw new BadRequestError(
+          'Переданы некорректные данные при обновлении профиля.',
+        );
       }
 
       if (err.name === 'CastError') {
-        return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Передан невалидный _id для обновления профиля.' });
+        throw new BadRequestError(
+          'Передан невалидный _id для обновления профиля.',
+        );
       }
 
-      return res.status(Err.INTERNAL_SERVER_ERR_CODE).send({ message: 'Внутренняя ошибка сервера' });
+      next(err);
     });
 };
 
@@ -143,19 +152,19 @@ module.exports.updateUserAvatar = (req, res) => {
   )
     .then((user) => {
       if (!user) {
-        return res.status(Err.NOT_FOUND_ERR_CODE).send({ message: 'Пользователь с указанным _id не найден.' });
+        return res.status(404).send({ message: 'Пользователь с указанным _id не найден.' });
       }
       return res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Переданы некорректные данные при обновлении аватара.' });
+        return res.status(400).send({ message: 'Переданы некорректные данные при обновлении аватара.' });
       }
 
       if (err.name === 'CastError') {
-        return res.status(Err.BAD_INPUT_ERR_CODE).send({ message: 'Передан невалидный _id для обновления аватара профиля.' });
+        return res.status(400).send({ message: 'Передан невалидный _id для обновления аватара профиля.' });
       }
 
-      return res.status(Err.INTERNAL_SERVER_ERR_CODE).send({ message: 'Внутренняя ошибка сервера' });
+      return res.status(500).send({ message: 'Внутренняя ошибка сервера' });
     });
 };
