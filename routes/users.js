@@ -1,5 +1,6 @@
 const router = require('express').Router();
 const { celebrate, Joi } = require('celebrate');
+const RegExp = require('../utils/RegExp');
 
 const {
   sendUsers,
@@ -21,7 +22,7 @@ router.patch('/me', celebrate({
 
 router.patch('/me/avatar', celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().required(),
+    avatar: Joi.string().required().pattern(RegExp),
   }),
 }), updateUserAvatar); // обновляет аватар
 
