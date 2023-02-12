@@ -6,7 +6,7 @@ const { celebrate, Joi, errors } = require('celebrate');
 const NotFoundError = require('./errors/notFoundError');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
-const urlRegEx = require('./utils/urlRegEx');
+const RegExp = require('./utils/RegExp');
 
 const { PORT = 3000 } = process.env;
 
@@ -31,7 +31,7 @@ app.post('/signup', celebrate({
   body: Joi.object().keys({
     name: Joi.string().min(2).max(30),
     about: Joi.string().min(2).max(30),
-    avatar: Joi.string().pattern(urlRegEx),
+    avatar: Joi.string().pattern(RegExp),
     email: Joi.string().required().email(),
     password: Joi.string().required().min(8),
   }),
