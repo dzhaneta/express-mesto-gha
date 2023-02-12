@@ -51,16 +51,12 @@ module.exports.createUser = (req, res, next) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new Error(
-          err.message,
-        ));
+        next(new BadRequestError(err.message));
       } else if (err.code === 11000) {
         next(new ConflictError(
           'Пользователь с таким email уже существует.',
         ));
-      } else {
-        next(err);
-      }
+      } else next(err);
     });
 };
 
@@ -85,7 +81,7 @@ module.exports.sendUserById = (req, res, next) => {
         ));
       }
 
-      next(err);
+      return next(err);
     });
 };
 
@@ -123,18 +119,12 @@ module.exports.updateUserInfo = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        throw new BadRequestError(
+        next(new BadRequestError(
           'Переданы некорректные данные при обновлении профиля.',
-        );
+        ));
       }
 
-      if (err.name === 'CastError') {
-        throw new BadRequestError(
-          'Передан невалидный _id для обновления профиля.',
-        );
-      }
-
-      next(err);
+      return next(err);
     });
 };
 
@@ -159,17 +149,11 @@ module.exports.updateUserAvatar = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        throw new BadRequestError(
+        next(new BadRequestError(
           'Переданы некорректные данные при обновлении аватара.',
-        );
+        ));
       }
 
-      if (err.name === 'CastError') {
-        throw new BadRequestError(
-          'Передан невалидный _id для обновления аватара.',
-        );
-      }
-
-      next(err);
+      return next(err);
     });
 };

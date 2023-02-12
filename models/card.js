@@ -23,6 +23,7 @@ const cardSchema = new mongoose.Schema({
   },
   likes: [{ // array of subdocuments
     type: mongoose.Schema.Types.ObjectId,
+    ref: 'user',
     default: [],
   }],
   createdAt: {

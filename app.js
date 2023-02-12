@@ -6,6 +6,7 @@ const { celebrate, Joi, errors } = require('celebrate');
 const NotFoundError = require('./errors/notFoundError');
 const { login, createUser } = require('./controllers/users');
 const auth = require('./middlewares/auth');
+const errHandler = require('./middlewares/errHandler');
 const RegExp = require('./utils/RegExp');
 
 const { PORT = 3000 } = process.env;
@@ -23,7 +24,7 @@ app.use(cookieParser());
 app.post('/signin', celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    password: Joi.string().required().min(8),
+    password: Joi.string().required(),
   }),
 }), login);
 
@@ -52,13 +53,6 @@ app.use((req, res, next) => {
 app.use(errors());
 
 // централизованный обработчик ошибок
-app.use((err, req, res, next) => {
-  if (err.statusCode) {
-    res.status(err.statusCode).send({ message: err.message });
-  } else {
-    res.status(500).send({ message: `На сервере произошла ошибка: ${err.message}` });
-  }
-  next();
-});
+app.use(errHandler);
 
 app.listen(PORT);

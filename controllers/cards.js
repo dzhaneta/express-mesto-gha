@@ -15,13 +15,13 @@ module.exports.createCard = (req, res, next) => {
   const ownerId = req.user._id;
 
   Card.create({ name, link, owner: ownerId })
-    .then((card) => res.send({ data: card }))
+    .then((card) => res.status(201).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError('Переданы некорректные данные при создании карточки.'));
       }
 
-      next(err);
+      return next(err);
     });
 };
 
@@ -42,9 +42,7 @@ module.exports.deleteCardById = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError('Переданы некорректные данные при удалении карточки.'));
-      } else {
-        next(err);
-      }
+      } else next(err);
     });
 };
 
@@ -68,7 +66,7 @@ module.exports.likeCard = (req, res, next) => {
         next(new BadRequestError('Передан невалидный _id карточки.'));
       }
 
-      next(err);
+      return next(err);
     });
 };
 
@@ -92,6 +90,6 @@ module.exports.dislikeCard = (req, res, next) => {
         next(new BadRequestError('Передан невалидный _id карточки.'));
       }
 
-      next(err);
+      return next(err);
     });
 };
