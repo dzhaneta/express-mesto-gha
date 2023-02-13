@@ -51,12 +51,14 @@ module.exports.createUser = (req, res, next) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError(err.message));
-      } else if (err.code === 11000) {
-        next(new ConflictError(
+        return next(new BadRequestError(err.message));
+      }
+      if (err.code === 11000) {
+        return next(new ConflictError(
           'Пользователь с таким email уже существует.',
         ));
-      } else next(err);
+      }
+      return next(err);
     });
 };
 
@@ -70,13 +72,15 @@ module.exports.sendUserById = (req, res, next) => {
   User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
-        throw new NotFoundError('Пользователь с указанным _id не найден.');
+        return next(new NotFoundError(
+          'Пользователь с указанным _id не найден.',
+        ));
       }
       return res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequestError(
+        return next(new BadRequestError(
           'Переданы некорректные данные при поиске пользователя.',
         ));
       }
@@ -90,7 +94,7 @@ module.exports.sendUserInfo = (req, res, next) => {
   User.findById(ownerId)
     .then((userInfo) => {
       if (!userInfo) {
-        throw new NotFoundError('Пользователь не найден.');
+        return next(new NotFoundError('Пользователь не найден.'));
       }
       return res.send({ data: userInfo });
     })
@@ -112,14 +116,16 @@ module.exports.updateUserInfo = (req, res, next) => {
   )
     .then((user) => {
       if (!user) {
-        throw new NotFoundError('Пользователь с указанным _id не найден.');
+        return next(new NotFoundError(
+          'Пользователь с указанным _id не найден.',
+        ));
       }
 
       return res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError(
+        return next(new BadRequestError(
           'Переданы некорректные данные при обновлении профиля.',
         ));
       }
@@ -143,13 +149,15 @@ module.exports.updateUserAvatar = (req, res, next) => {
   )
     .then((user) => {
       if (!user) {
-        throw new NotFoundError('Пользователь с указанным _id не найден.');
+        return next(new NotFoundError(
+          'Пользователь с указанным _id не найден.',
+        ));
       }
       return res.send({ data: user });
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError(
+        return next(new BadRequestError(
           'Переданы некорректные данные при обновлении аватара.',
         ));
       }

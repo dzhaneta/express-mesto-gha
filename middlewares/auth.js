@@ -7,7 +7,7 @@ module.exports = (req, res, next) => {
 
   // проверяем, есть ли токен в куках
   if (!token) {
-    throw new UnauthorizedError('Необходима авторизация');
+    return next(new UnauthorizedError('Необходима авторизация'));
   }
 
   let payload;
@@ -16,7 +16,7 @@ module.exports = (req, res, next) => {
     // верифицируем токен
     payload = jwt.verify(token, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret');
   } catch (err) {
-    next(new UnauthorizedError('Необходима авторизация'));
+    return next(new UnauthorizedError('Необходима авторизация'));
   }
 
   req.user = payload; // записываем пейлоуд в объект запроса

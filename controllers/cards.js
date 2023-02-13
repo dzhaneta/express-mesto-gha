@@ -18,7 +18,7 @@ module.exports.createCard = (req, res, next) => {
     .then((card) => res.status(201).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные при создании карточки.'));
+        return next(new BadRequestError('Переданы некорректные данные при создании карточки.'));
       }
 
       return next(err);
@@ -41,8 +41,9 @@ module.exports.deleteCardById = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequestError('Переданы некорректные данные при удалении карточки.'));
-      } else next(err);
+        return next(new BadRequestError('Переданы некорректные данные при удалении карточки.'));
+      }
+      return next(err);
     });
 };
 
@@ -63,7 +64,7 @@ module.exports.likeCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequestError('Передан невалидный _id карточки.'));
+        return next(new BadRequestError('Передан невалидный _id карточки.'));
       }
 
       return next(err);
@@ -87,7 +88,7 @@ module.exports.dislikeCard = (req, res, next) => {
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new BadRequestError('Передан невалидный _id карточки.'));
+        return next(new BadRequestError('Передан невалидный _id карточки.'));
       }
 
       return next(err);
