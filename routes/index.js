@@ -1,10 +1,14 @@
 const router = require('express').Router();
 const { celebrate, Joi, errors } = require('celebrate');
+const { requestLogger, errorLogger } = require('../middlewares/logger');
 const auth = require('../middlewares/auth');
 const { login, createUser } = require('../controllers/users');
 const NotFoundError = require('../errors/notFoundError');
 const errHandler = require('../middlewares/errHandler');
 const RegExp = require('../utils/RegExp');
+
+// логгер запросов
+router.use(requestLogger);
 
 // роуты, не требующие авторизации
 router.post('/signin', celebrate({
@@ -34,6 +38,9 @@ router.use('/cards', require('./cards'));
 router.use((req, res, next) => {
   next(new NotFoundError('Такой страницы не существует.'));
 });
+
+// логгер ошибок
+router.use(errorLogger);
 
 // обработчик ошибок celebrate
 router.use(errors());
