@@ -15,6 +15,6 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
 app.use(express.json());
 app.use(cookieParser());
 
-app.use('/', router);
+app.use('/api', router);
 
 app.listen(PORT);
